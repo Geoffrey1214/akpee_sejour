@@ -156,8 +156,10 @@ dialog h2{font-size:24px;margin-bottom:14px}
 <h2 id="dt"></h2>
 <p id="dm" style="margin:0;color:var(--muted)"></p>
 <p id="dx" style="margin:0"></p>
+<video id="dv" controls preload="none" playsinline hidden style="width:100%;border-radius:10px"></video>
 <label>Arrivée<input id="b1" type="date"></label>
-<label>Départ<input id="b2" type="date"></label>
+<label id="r2">Départ<input id="b2" type="date"></label>
+<label id="r3" hidden>Durée (mois)<select id="bn"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label>
 <label>Voyageurs<input id="bg" type="number" min="1" value="2"></label>
 <p id="bt" style="margin:0;font-weight:600"></p>
 <p class="msg" id="bm" role="status"></p>
@@ -176,9 +178,11 @@ dialog h2{font-size:24px;margin-bottom:14px}
 <label>Type<select id="h_ty"><option value="hotel">Hôtel</option><option value="appartement">Appartement</option><option value="villa">Villa</option><option value="auberge">Auberge</option></select></label>
 <label>Pays<input id="h_co" type="text" value="Togo"></label>
 <label>Ville<input id="h_ci" type="text"></label>
-<label>Prix par nuit (FCFA)<input id="h_p" type="number" min="1000" step="500"></label>
+<label>Le prix est calculé<select id="h_u"><option value="nuit">Par nuit</option><option value="jour">Par jour</option><option value="mois">Par mois</option></select></label>
+<label>Prix (FCFA)<input id="h_p" type="number" min="1000" step="500"></label>
 <label>Voyageurs maximum<input id="h_g" type="number" min="1" value="2"></label>
 <label>Photos (jusqu’à 4)<input id="h_f" type="file" accept="image/*" multiple></label>
+<label>Vidéo de présentation (facultatif, 1 minute et 30 Mo maximum)<input id="h_v" type="file" accept="video/*"></label>
 <p class="msg" id="hm" role="status"></p>
 <button class="btn" id="hs" type="button">Publier le logement</button>
 <button class="link" id="hc" type="button">Fermer</button>
@@ -208,7 +212,7 @@ function chips(){$("chips").innerHTML="";types.forEach(t=>{const b=document.crea
 function render(){
 const d=$("dest").value;
 const rows=L.filter(x=>(!d||x.c===d)&&(type==="Tous"||x.t===type));
-shown=rows;$("grid").innerHTML=rows.length?rows.map((x,i)=>`<article class="card" tabindex="0" role="button" data-i="${i}"><div class="photo" style="background:${bg(x)}"><span>${esc(x.t)}</span></div><div class="body"><h3>${esc(x.n)}</h3><div class="city">${esc(x.c)}${x.r?" · ★ "+x.r:""}</div><div class="price"><b>${money(x.p)}</b><span>par nuit</span></div></div></article>`).join(""):`<div class="empty">Aucun logement pour cette recherche. Essayez une autre ville ou un autre type.</div>`}
+shown=rows;$("grid").innerHTML=rows.length?rows.map((x,i)=>`<article class="card" tabindex="0" role="button" data-i="${i}"><div class="photo" style="background:${bg(x)}"><span>${esc(x.t)}</span></div><div class="body"><h3>${esc(x.n)}</h3><div class="city">${esc(x.c)}${x.r?" · ★ "+x.r:""}</div><div class="price"><b>${money(x.p)}</b><span>par ${esc(x.u||"nuit")}</span></div></div></article>`).join(""):`<div class="empty">Aucun logement pour cette recherche. Essayez une autre ville ou un autre type.</div>`}
 $("form").onsubmit=e=>{e.preventDefault();render();$("logements").scrollIntoView({behavior:"smooth"})};
 $("dest").onchange=render;
 $("m").onclick=()=>{guests=Math.max(1,guests-1);$("g").textContent=guests};
@@ -217,10 +221,10 @@ $("cur").onclick=()=>{cur=cur==="FCFA"?"€":"FCFA";$("cur").textContent=cur;ren
 const today=new Date().toISOString().slice(0,10);$("d1").min=today;$("d2").min=today;
 async function load(){
 try{
-const r=await fetch(SUPABASE_URL+"/rest/v1/listings?status=eq.publie&select=id,title,description,type,city,price_fcfa,max_guests,listing_photos(url,position)&order=created_at.desc",{headers:{apikey:SUPABASE_KEY}});
+const r=await fetch(SUPABASE_URL+"/rest/v1/listings?status=eq.publie&select=id,title,description,type,city,price_fcfa,max_guests,price_unit,video_url,listing_photos(url,position)&order=created_at.desc",{headers:{apikey:SUPABASE_KEY}});
 if(!r.ok)throw new Error(r.status);
 const d=await r.json();
-if(d.length){L=d.map((x,i)=>({id:x.id,img:((x.listing_photos||[]).sort((a,b)=>a.position-b.position)[0]||{}).url,d:x.description,g:x.max_guests,n:x.title,c:x.city,t:TYPES[x.type]||x.type,p:x.price_fcfa,a:PALETTE[i%PALETTE.length]}));fillDest();render()}
+if(d.length){L=d.map((x,i)=>({id:x.id,u:x.price_unit,v:x.video_url,img:((x.listing_photos||[]).sort((a,b)=>a.position-b.position)[0]||{}).url,d:x.description,g:x.max_guests,n:x.title,c:x.city,t:TYPES[x.type]||x.type,p:x.price_fcfa,a:PALETTE[i%PALETTE.length]}));fillDest();render()}
 }catch(e){console.error("Supabase indisponible, données d’exemple affichées",e)}
 }
 /* ---- Authentification ---- */
@@ -277,31 +281,43 @@ let shown=[],pick=null;
 function nights(){const a=$("b1").value,b=$("b2").value;return a&&b?Math.round((new Date(b)-new Date(a))/864e5):0}
 function bsay(t,c){const m=$("bm");m.textContent=t;m.className="msg "+(c||"")}
 function upd(){
-const n=nights();
-$("bt").textContent=n>0?n+(n>1?" nuits":" nuit")+" · total "+money(n*pick.p):"Choisissez vos dates"}
+const n=units(),u=pick.u||"nuit";
+const lab=u==="mois"?"mois":u==="jour"?(n>1?"jours":"jour"):(n>1?"nuits":"nuit");
+$("bt").textContent=n>0?n+" "+lab+" · total "+money(n*pick.p):"Choisissez vos dates"}
 function openDetail(x){
 if(!x)return;
 pick=x;
 $("dt").textContent=x.n;
 $("dm").textContent=x.t+" · "+x.c;
-$("dx").textContent=(x.d?x.d+" ":"")+money(x.p)+" par nuit"+(x.g?" · jusqu’à "+x.g+" voyageurs":"");
+$("dx").textContent=(x.d?x.d+" ":"")+money(x.p)+" par "+(x.u||"nuit")+(x.g?" · jusqu’à "+x.g+" voyageurs":"");
 $("b1").min=today;$("b2").min=today;$("b1").value="";$("b2").value="";
 $("bg").max=x.g||12;$("bg").value=Math.min(guests,x.g||12);
+const m=x.u==="mois";
+$("r2").hidden=m;$("r3").hidden=!m;$("bn").value="1";
+const v=$("dv");v.hidden=!x.v;if(x.v)v.src=x.v;else v.removeAttribute("src");
 bsay("");upd();$("dd").showModal()}
+$("dd").addEventListener("close",()=>$("dv").pause());
+function units(){return pick.u==="mois"?(nights()>0?+$("bn").value:0):nights()}
+function setEnd(){
+const a=$("b1").value;if(!a)return;
+const d=new Date(a);d.setUTCMonth(d.getUTCMonth()+(+$("bn").value));
+$("b2").value=d.toISOString().slice(0,10)}
 $("grid").onclick=e=>{const c=e.target.closest(".card");if(c)openDetail(shown[+c.dataset.i])};
 $("grid").onkeydown=e=>{if(e.key==="Enter"){const c=e.target.closest(".card");if(c)openDetail(shown[+c.dataset.i])}};
 $("b1").onchange=()=>{
 const a=$("b1").value;
 if(a){const n=new Date(a);n.setDate(n.getDate()+1);$("b2").min=n.toISOString().slice(0,10);if($("b2").value&&$("b2").value<=a)$("b2").value=""}
+if(pick.u==="mois")setEnd();
 upd()};
 $("b2").onchange=upd;
+$("bn").onchange=()=>{setEnd();upd()};
 $("bc").onclick=()=>$("dd").close();
 async function ensureFresh(){
 if(session.expires_at>Date.now()+30000)return;
 try{setSession(await authCall("/auth/v1/token?grant_type=refresh_token",{refresh_token:session.refresh_token}))}
 catch(e){session=null;keep(null);paint();throw{message:"Session expirée, reconnectez-vous."}}}
 $("bk").onclick=async()=>{
-const n=nights(),g=+$("bg").value;
+const n=units(),g=+$("bg").value;
 if(!pick.id){bsay("Logement d’exemple : réservation indisponible.","err");return}
 if(n<1){bsay("Choisissez une date de départ après la date d’arrivée.","err");return}
 if(!(g>=1)||(pick.g&&g>pick.g)){bsay("Nombre de voyageurs invalide"+(pick.g?" (maximum "+pick.g+")":"")+".","err");return}
@@ -317,6 +333,7 @@ bsay(d.code==="23P01"?"Ces dates ne sont pas disponibles pour ce logement.":"Imp
 $("bk").disabled=false};
 /* ---- Espace hôte ---- */
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+const ST={publie:"en ligne",en_attente:"en attente de validation",suspendu:"retiré",brouillon:"brouillon"};
 function bg(x){return x.img?"url('"+encodeURI(x.img)+"') center/cover":"linear-gradient(135deg,"+x.a.split(",")[0]+","+x.a.split(",")[1]+")"}
 function hsay(t,c){const m=$("hm");m.textContent=t;m.className="msg "+(c||"")}
 async function rest(path,opt){
@@ -329,7 +346,7 @@ const JSONH={"Content-Type":"application/json"};
 async function mine(){
 try{
 const d=await rest("/rest/v1/listings?host_id=eq."+session.user.id+"&select=id,title,city,price_fcfa,status&order=created_at.desc");
-$("mine").innerHTML=d.length?d.map(x=>`<div class="mine"><div><b>${esc(x.title)}</b><br><span>${esc(x.city)} · ${x.price_fcfa.toLocaleString("fr-FR")} FCFA · ${x.status==="publie"?"en ligne":"retiré"}</span></div><button class="link" data-a="toggle" data-id="${x.id}" data-s="${x.status}">${x.status==="publie"?"Retirer":"Republier"}</button><button class="link" data-a="del" data-id="${x.id}">Supprimer</button></div>`).join(""):`<p class="msg">Vous n’avez pas encore de logement.</p>`
+$("mine").innerHTML=d.length?d.map(x=>`<div class="mine"><div><b>${esc(x.title)}</b><br><span>${esc(x.city)} · ${x.price_fcfa.toLocaleString("fr-FR")} FCFA · ${ST[x.status]||x.status}</span></div>${x.status==="en_attente"?"":`<button class="link" data-a="toggle" data-id="${x.id}" data-s="${x.status}">${x.status==="publie"?"Retirer":"Republier"}</button>`}<button class="link" data-a="del" data-id="${x.id}">Supprimer</button></div>`).join(""):`<p class="msg">Vous n’avez pas encore de logement.</p>`
 }catch(e){$("mine").textContent="Impossible de charger vos logements."}}
 $("beHost").onclick=async()=>{
 if(!session){setMode("login");say("Connectez-vous pour devenir hôte.");$("dlg").showModal();return}
@@ -350,9 +367,11 @@ return new Promise(r=>c.toBlob(r,"image/jpeg",.8))}
 $("hs").onclick=async()=>{
 const t=$("h_t").value.trim(),ci=$("h_ci").value.trim(),co=$("h_co").value.trim(),p=Math.round(+$("h_p").value),g=Math.round(+$("h_g").value),files=[...$("h_f").files].slice(0,4);
 if(!t||!ci||!co||!(p>=1000)||!(g>=1)){hsay("Remplissez le titre, le pays, la ville, un prix d’au moins 1 000 FCFA et la capacité.","err");return}
+const vf=$("h_v").files[0];
+if(vf&&vf.size>30*1048576){hsay("La vidéo dépasse 30 Mo : filmez en 720p pendant une minute au maximum.","err");return}
 $("hs").disabled=true;hsay("Publication en cours…");
 try{
-const row=await rest("/rest/v1/listings?select=id",{method:"POST",headers:{...JSONH,Prefer:"return=representation"},body:JSON.stringify({host_id:session.user.id,title:t,description:$("h_d").value.trim()||null,type:$("h_ty").value,country:co,city:ci,price_fcfa:p,max_guests:g,status:"publie"})});
+const row=await rest("/rest/v1/listings?select=id,status",{method:"POST",headers:{...JSONH,Prefer:"return=representation"},body:JSON.stringify({host_id:session.user.id,title:t,description:$("h_d").value.trim()||null,type:$("h_ty").value,country:co,city:ci,price_fcfa:p,price_unit:$("h_u").value,max_guests:g,status:"publie"})});
 const id=row[0].id;
 for(let i=0;i<files.length;i++){
 hsay("Envoi de la photo "+(i+1)+" sur "+files.length+"…");
@@ -360,8 +379,14 @@ const path=session.user.id+"/"+id+"-"+i+".jpg";
 const r=await fetch(SUPABASE_URL+"/storage/v1/object/photos/"+path,{method:"POST",headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"image/jpeg"},body:await squeeze(files[i])});
 if(!r.ok)throw{message:"envoi de la photo "+(i+1)+" impossible (le logement est publié sans elle)"};
 await rest("/rest/v1/listing_photos",{method:"POST",headers:{...JSONH,Prefer:"return=minimal"},body:JSON.stringify({listing_id:id,url:SUPABASE_URL+"/storage/v1/object/public/photos/"+path,position:i})})}
-hsay("Logement publié !","ok");
-["h_t","h_d","h_ci","h_p"].forEach(k=>$(k).value="");$("h_f").value="";
+if(vf){
+hsay("Envoi de la vidéo…");
+const vp=session.user.id+"/"+id+"-video."+((vf.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"")||"mp4");
+const vr=await fetch(SUPABASE_URL+"/storage/v1/object/photos/"+vp,{method:"POST",headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":vf.type||"video/mp4"},body:vf});
+if(!vr.ok)throw{message:"envoi de la vidéo impossible (le logement est enregistré sans elle)"};
+await rest("/rest/v1/listings?id=eq."+id,{method:"PATCH",headers:{...JSONH,Prefer:"return=minimal"},body:JSON.stringify({video_url:SUPABASE_URL+"/storage/v1/object/public/photos/"+vp})})}
+hsay(row[0].status==="publie"?"Logement publié !":"Logement envoyé. Il sera mis en ligne après validation.","ok");
+["h_t","h_d","h_ci","h_p"].forEach(k=>$(k).value="");$("h_f").value="";$("h_v").value="";
 await mine();load()
 }catch(e){hsay("Échec : "+(e.message||"erreur inconnue"),"err")}
 $("hs").disabled=false};
