@@ -141,7 +141,7 @@ dialog h2{font-size:24px;margin-bottom:14px}
 
 <footer><div class="wrap">
 <div>© 2026 Akpé Séjours. Tous droits réservés.</div>
-<div><a href="#">Mentions légales</a><a href="#">CGU</a><a href="#">Confidentialité</a><a href="#">Aide</a></div>
+<div><a href="#" data-doc="mentions">Mentions légales</a><a href="#" data-doc="cgu">CGU</a><a href="#" data-doc="confidentialite">Confidentialité</a><a href="#" data-doc="annulation">Annulation et remboursement</a><a href="#" id="aide">Aide</a></div>
 </div></footer>
 
 <dialog id="dlg" aria-labelledby="at">
@@ -192,6 +192,21 @@ dialog h2{font-size:24px;margin-bottom:14px}
 <p class="msg" id="hm" role="status"></p>
 <button class="btn" id="hs" type="button">Publier le logement</button>
 <button class="link" id="hc" type="button">Fermer</button>
+</div>
+</dialog>
+
+<style>
+#ld{width:min(640px,94vw)}
+#ld h3{font-size:17px;margin:16px 0 4px}
+#ld p,#ld li{font-size:15px;margin:0 0 6px}
+#ld ul{margin:0 0 6px;padding-left:20px}
+</style>
+<dialog id="ld" aria-labelledby="ldt">
+<div class="af">
+<h2 id="ldt"></h2>
+<div id="ldb"></div>
+<p id="ldm" style="margin:8px 0 0;color:var(--muted);font-size:13px"></p>
+<button class="link" id="ldc" type="button">Fermer</button>
 </div>
 </dialog>
 
@@ -428,6 +443,53 @@ hsay(row[0].status==="publie"?"Logement publié !":"Logement envoyé. Il sera mi
 await mine();load()
 }catch(e){hsay("Échec : "+(e.message||"erreur inconnue"),"err")}
 $("hs").disabled=false};
+/* ---- Pages légales : modifiez ces 5 lignes avec vos informations ---- */
+const EDITEUR={nom:"Akpé Séjours",resp:"Gnassiwè ATEKESSIM",ville:"Kara, Togo",email:"atekessimephrem@gmail.com",tel:"+228 70 41 46 73"};
+const MAJ="28 octobre 2026";
+const sec=(t,...p)=>`<h3>${t}</h3>`+p.map(x=>`<p>${x}</p>`).join("");
+function legalDoc(k){
+const E=EDITEUR,C=COMMISSION;
+const D={
+mentions:["Mentions légales",
+sec("Éditeur du site",`${E.nom}, édité par ${E.resp}, ${E.ville}.`,`Contact : ${E.email} · ${E.tel}`)+
+sec("Hébergement","Le site est hébergé par GitHub Pages (GitHub, Inc.). Les données sont stockées chez Supabase.")+
+sec("Nature du service",`${E.nom} est une plateforme de mise en relation entre hôtes et voyageurs. Elle n’est pas propriétaire des logements proposés.`)],
+cgu:["Conditions générales d’utilisation",
+sec("1. Objet",`Ces conditions encadrent l’utilisation de ${E.nom}, plateforme qui permet à des hôtes de proposer des logements et à des voyageurs de les réserver.`)+
+sec("2. Comptes","Un compte est nécessaire pour réserver ou publier. Vous fournissez des informations exactes et vous protégez votre mot de passe. Vous êtes responsable de l’activité de votre compte.")+
+sec("3. Rôle de la plateforme","La plateforme met en relation hôtes et voyageurs. Le contrat de séjour est conclu entre l’hôte et le voyageur. Nous encaissons le paiement, puis nous reversons à l’hôte le montant dû, après déduction de notre commission.")+
+sec("4. Obligations des hôtes","L’hôte publie des annonces exactes : description, photos et vidéo réelles, prix et capacité corrects. Chaque nouvelle annonce peut être vérifiée avant sa mise en ligne, et nous pouvons refuser ou retirer une annonce à tout moment. L’hôte garantit qu’il a le droit de proposer le logement et respecte la loi locale.")+
+sec("5. Obligations des voyageurs","Le voyageur respecte le logement, le règlement de l’hôte et le nombre de personnes autorisé. Il répond des dégradations qu’il cause.")+
+sec("6. Prix, paiement et commission",`Les prix sont en francs CFA, par nuit, par jour ou par mois selon l’annonce. Le total est affiché avant la réservation. Le paiement se fait en ligne, par Mobile Money ou par carte, via un prestataire de paiement. Une commission de service de ${C} % est prélevée sur chaque réservation.`)+
+sec("7. Annulation et remboursement","Voir la politique d’annulation et de remboursement.")+
+sec("8. Responsabilité","Nous ne sommes pas responsables de l’état du logement ni de la conduite des hôtes ou des voyageurs, mais nous traitons les signalements et pouvons suspendre les comptes concernés.")+
+sec("9. Suspension","Nous pouvons suspendre un compte en cas de fausse annonce, de fraude ou de non-respect de ces conditions.")+
+sec("10. Droit applicable","Ces conditions sont régies par le droit togolais. En cas de litige, nous cherchons d’abord une solution amiable ; à défaut, les tribunaux compétents du Togo sont saisis.")+
+sec("11. Modification","Nous pouvons modifier ces conditions. La date de mise à jour figure en bas de cette page.")],
+confidentialite:["Politique de confidentialité",
+sec("Données collectées","Nom, adresse e-mail, téléphone (facultatif) et réservations. Pour les hôtes : annonces, photos et vidéos.")+
+sec("Utilisation","Gérer votre compte, traiter les réservations et les paiements, mettre en relation l’hôte et le voyageur, sécuriser le site.")+
+sec("Partage","Le nom et le téléphone du voyageur sont visibles de l’hôte dont il réserve le logement. Vos données sont aussi traitées par nos prestataires : Supabase pour l’hébergement des données, et le prestataire de paiement. Nous ne vendons pas vos données.")+
+sec("Session","Le site garde votre session de connexion dans votre navigateur jusqu’à votre déconnexion.")+
+sec("Conservation","Vos données sont conservées tant que votre compte existe, puis pendant la durée exigée par la loi.")+
+sec("Vos droits",`Vous pouvez demander l’accès, la correction ou la suppression de vos données en écrivant à ${E.email}. Nous appliquons la législation togolaise sur la protection des données personnelles.`)+
+sec("Sécurité","Les connexions sont chiffrées et les mots de passe sont protégés par le service d’authentification.")],
+annulation:["Annulation et remboursement",
+sec("Annulation par le voyageur","Dans Mon compte, section Mes séjours, touchez Annuler. Le remboursement dépend de la date d’annulation par rapport à l’arrivée :")+
+`<ul><li>jusqu’à 48 heures avant l’arrivée : remboursement de 100 %</li><li>entre 48 heures et le jour de l’arrivée : remboursement de 50 %</li><li>après l’arrivée ou en cas de non-présentation : aucun remboursement</li></ul>`+
+sec("Séjours facturés au mois","Remboursement de 100 % jusqu’à 7 jours avant l’arrivée, de 50 % entre 7 jours et 48 heures avant l’arrivée, puis aucun remboursement.")+
+sec("Remboursement","Il est effectué par le même moyen de paiement, dans les meilleurs délais après l’annulation.")+
+sec("Annulation par l’hôte","Si l’hôte annule, le voyageur est remboursé à 100 %. Des annulations répétées peuvent entraîner la suspension de l’hôte.")+
+sec("Paiement de l’hôte",`L’hôte est payé 24 heures après l’arrivée du voyageur, après déduction de la commission de ${C} %.`)+
+sec("Problème à l’arrivée",`Si le logement ne correspond pas à l’annonce, prévenez-nous dans les 24 heures à ${E.email}. Nous examinons chaque cas et pouvons rembourser tout ou partie du séjour.`)]};
+return D[k]}
+document.querySelectorAll("[data-doc]").forEach(a=>a.onclick=e=>{
+e.preventDefault();
+const d=legalDoc(a.dataset.doc);
+$("ldt").textContent=d[0];$("ldb").innerHTML=d[1];$("ldm").textContent="Dernière mise à jour : "+MAJ;
+$("ld").showModal()});
+$("ldc").onclick=()=>$("ld").close();
+$("aide").href="mailto:"+EDITEUR.email;
 /* ---- Mon compte et réservations ---- */
 const COMMISSION=10; /* pourcentage prélevé par la plateforme : à modifier ici */
 const BS={en_attente:"en attente de paiement",confirmee:"confirmée",annulee:"annulée",terminee:"terminée"};
