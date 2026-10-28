@@ -69,7 +69,10 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 dialog h2{font-size:24px;margin-bottom:14px}
 .af{display:flex;flex-direction:column;gap:12px}
 .af label{font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
-.af input{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:11px 12px;font:400 16px Figtree,sans-serif}
+.af input,.af select,.af textarea{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:11px 12px;font:400 16px Figtree,sans-serif;width:100%}
+#hd{width:min(460px,94vw)}
+.mine{display:flex;gap:6px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px;margin-bottom:8px}
+.mine span{color:var(--muted)}.mine div{flex:1;min-width:0}
 .af .msg{margin:0;font-size:14px;min-height:20px}
 .af .msg.err{color:#D64545}.af .msg.ok{color:var(--leaf)}
 .link{background:none;border:0;color:var(--muted);text-decoration:underline;font:500 14px Figtree,sans-serif;cursor:pointer;padding:6px}
@@ -125,7 +128,7 @@ dialog h2{font-size:24px;margin-bottom:14px}
 <section id="hote">
 <div class="host">
 <div><h2>Mettez votre logement en ligne</h2><p>Recevez des voyageurs, fixez vos prix et gérez vos réservations depuis votre téléphone.</p></div>
-<button class="btn" type="button">Devenir hôte</button>
+<button class="btn" id="beHost" type="button">Devenir hôte</button>
 </div>
 </section>
 </div>
@@ -163,6 +166,25 @@ dialog h2{font-size:24px;margin-bottom:14px}
 </div>
 </dialog>
 
+<dialog id="hd" aria-labelledby="ht">
+<div class="af">
+<h2 id="ht">Espace hôte</h2>
+<div id="mine"></div>
+<h3 style="font-size:18px;margin-top:6px">Ajouter un logement</h3>
+<label>Titre<input id="h_t" type="text" maxlength="80"></label>
+<label>Description<textarea id="h_d" rows="3" maxlength="600"></textarea></label>
+<label>Type<select id="h_ty"><option value="hotel">Hôtel</option><option value="appartement">Appartement</option><option value="villa">Villa</option><option value="auberge">Auberge</option></select></label>
+<label>Pays<input id="h_co" type="text" value="Togo"></label>
+<label>Ville<input id="h_ci" type="text"></label>
+<label>Prix par nuit (FCFA)<input id="h_p" type="number" min="1000" step="500"></label>
+<label>Voyageurs maximum<input id="h_g" type="number" min="1" value="2"></label>
+<label>Photos (jusqu’à 4)<input id="h_f" type="file" accept="image/*" multiple></label>
+<p class="msg" id="hm" role="status"></p>
+<button class="btn" id="hs" type="button">Publier le logement</button>
+<button class="link" id="hc" type="button">Fermer</button>
+</div>
+</dialog>
+
 <script>
 const SUPABASE_URL="https://mzigwybhjwzkooxgkulz.supabase.co";
 const SUPABASE_KEY="sb_publishable_1v49dLQJZYHh_tu5r3MbFQ_0wPzXYiO";
@@ -186,7 +208,7 @@ function chips(){$("chips").innerHTML="";types.forEach(t=>{const b=document.crea
 function render(){
 const d=$("dest").value;
 const rows=L.filter(x=>(!d||x.c===d)&&(type==="Tous"||x.t===type));
-shown=rows;$("grid").innerHTML=rows.length?rows.map((x,i)=>`<article class="card" tabindex="0" role="button" data-i="${i}"><div class="photo" style="background:linear-gradient(135deg,${x.a.split(",")[0]},${x.a.split(",")[1]})"><span>${x.t}</span></div><div class="body"><h3>${x.n}</h3><div class="city">${x.c}${x.r?" · ★ "+x.r:""}</div><div class="price"><b>${money(x.p)}</b><span>par nuit</span></div></div></article>`).join(""):`<div class="empty">Aucun logement pour cette recherche. Essayez une autre ville ou un autre type.</div>`}
+shown=rows;$("grid").innerHTML=rows.length?rows.map((x,i)=>`<article class="card" tabindex="0" role="button" data-i="${i}"><div class="photo" style="background:${bg(x)}"><span>${esc(x.t)}</span></div><div class="body"><h3>${esc(x.n)}</h3><div class="city">${esc(x.c)}${x.r?" · ★ "+x.r:""}</div><div class="price"><b>${money(x.p)}</b><span>par nuit</span></div></div></article>`).join(""):`<div class="empty">Aucun logement pour cette recherche. Essayez une autre ville ou un autre type.</div>`}
 $("form").onsubmit=e=>{e.preventDefault();render();$("logements").scrollIntoView({behavior:"smooth"})};
 $("dest").onchange=render;
 $("m").onclick=()=>{guests=Math.max(1,guests-1);$("g").textContent=guests};
@@ -195,10 +217,10 @@ $("cur").onclick=()=>{cur=cur==="FCFA"?"€":"FCFA";$("cur").textContent=cur;ren
 const today=new Date().toISOString().slice(0,10);$("d1").min=today;$("d2").min=today;
 async function load(){
 try{
-const r=await fetch(SUPABASE_URL+"/rest/v1/listings?status=eq.publie&select=id,title,description,type,city,price_fcfa,max_guests&order=created_at.desc",{headers:{apikey:SUPABASE_KEY}});
+const r=await fetch(SUPABASE_URL+"/rest/v1/listings?status=eq.publie&select=id,title,description,type,city,price_fcfa,max_guests,listing_photos(url,position)&order=created_at.desc",{headers:{apikey:SUPABASE_KEY}});
 if(!r.ok)throw new Error(r.status);
 const d=await r.json();
-if(d.length){L=d.map((x,i)=>({id:x.id,d:x.description,g:x.max_guests,n:x.title,c:x.city,t:TYPES[x.type]||x.type,p:x.price_fcfa,a:PALETTE[i%PALETTE.length]}));fillDest();render()}
+if(d.length){L=d.map((x,i)=>({id:x.id,img:((x.listing_photos||[]).sort((a,b)=>a.position-b.position)[0]||{}).url,d:x.description,g:x.max_guests,n:x.title,c:x.city,t:TYPES[x.type]||x.type,p:x.price_fcfa,a:PALETTE[i%PALETTE.length]}));fillDest();render()}
 }catch(e){console.error("Supabase indisponible, données d’exemple affichées",e)}
 }
 /* ---- Authentification ---- */
@@ -293,6 +315,56 @@ bsay("Réservation enregistrée ! Elle est en attente de paiement.","ok")
 }catch(d){
 bsay(d.code==="23P01"?"Ces dates ne sont pas disponibles pour ce logement.":"Impossible de réserver : "+(d.message||"erreur inconnue"),"err")}
 $("bk").disabled=false};
+/* ---- Espace hôte ---- */
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function bg(x){return x.img?"url('"+encodeURI(x.img)+"') center/cover":"linear-gradient(135deg,"+x.a.split(",")[0]+","+x.a.split(",")[1]+")"}
+function hsay(t,c){const m=$("hm");m.textContent=t;m.className="msg "+(c||"")}
+async function rest(path,opt){
+await ensureFresh();
+opt=opt||{};
+const r=await fetch(SUPABASE_URL+path,{...opt,headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+session.access_token,...opt.headers}});
+if(!r.ok)throw await r.json().catch(()=>({}));
+const t=await r.text();return t?JSON.parse(t):null}
+const JSONH={"Content-Type":"application/json"};
+async function mine(){
+try{
+const d=await rest("/rest/v1/listings?host_id=eq."+session.user.id+"&select=id,title,city,price_fcfa,status&order=created_at.desc");
+$("mine").innerHTML=d.length?d.map(x=>`<div class="mine"><div><b>${esc(x.title)}</b><br><span>${esc(x.city)} · ${x.price_fcfa.toLocaleString("fr-FR")} FCFA · ${x.status==="publie"?"en ligne":"retiré"}</span></div><button class="link" data-a="toggle" data-id="${x.id}" data-s="${x.status}">${x.status==="publie"?"Retirer":"Republier"}</button><button class="link" data-a="del" data-id="${x.id}">Supprimer</button></div>`).join(""):`<p class="msg">Vous n’avez pas encore de logement.</p>`
+}catch(e){$("mine").textContent="Impossible de charger vos logements."}}
+$("beHost").onclick=async()=>{
+if(!session){setMode("login");say("Connectez-vous pour devenir hôte.");$("dlg").showModal();return}
+hsay("");$("hd").showModal();await mine()};
+$("hc").onclick=()=>$("hd").close();
+$("mine").onclick=async e=>{
+const b=e.target.closest("button[data-a]");if(!b)return;
+try{
+if(b.dataset.a==="toggle")await rest("/rest/v1/listings?id=eq."+b.dataset.id,{method:"PATCH",headers:{...JSONH,Prefer:"return=minimal"},body:JSON.stringify({status:b.dataset.s==="publie"?"suspendu":"publie"})});
+else if(confirm("Supprimer définitivement ce logement ?"))await rest("/rest/v1/listings?id=eq."+b.dataset.id,{method:"DELETE"});
+hsay("");await mine();load()
+}catch(err){hsay(err.code==="23503"?"Ce logement a des réservations : retirez-le plutôt que de le supprimer.":"Action impossible.","err")}};
+async function squeeze(f){
+const b=await createImageBitmap(f),k=Math.min(1,1280/Math.max(b.width,b.height)),c=document.createElement("canvas");
+c.width=Math.round(b.width*k);c.height=Math.round(b.height*k);
+c.getContext("2d").drawImage(b,0,0,c.width,c.height);
+return new Promise(r=>c.toBlob(r,"image/jpeg",.8))}
+$("hs").onclick=async()=>{
+const t=$("h_t").value.trim(),ci=$("h_ci").value.trim(),co=$("h_co").value.trim(),p=Math.round(+$("h_p").value),g=Math.round(+$("h_g").value),files=[...$("h_f").files].slice(0,4);
+if(!t||!ci||!co||!(p>=1000)||!(g>=1)){hsay("Remplissez le titre, le pays, la ville, un prix d’au moins 1 000 FCFA et la capacité.","err");return}
+$("hs").disabled=true;hsay("Publication en cours…");
+try{
+const row=await rest("/rest/v1/listings?select=id",{method:"POST",headers:{...JSONH,Prefer:"return=representation"},body:JSON.stringify({host_id:session.user.id,title:t,description:$("h_d").value.trim()||null,type:$("h_ty").value,country:co,city:ci,price_fcfa:p,max_guests:g,status:"publie"})});
+const id=row[0].id;
+for(let i=0;i<files.length;i++){
+hsay("Envoi de la photo "+(i+1)+" sur "+files.length+"…");
+const path=session.user.id+"/"+id+"-"+i+".jpg";
+const r=await fetch(SUPABASE_URL+"/storage/v1/object/photos/"+path,{method:"POST",headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"image/jpeg"},body:await squeeze(files[i])});
+if(!r.ok)throw{message:"envoi de la photo "+(i+1)+" impossible (le logement est publié sans elle)"};
+await rest("/rest/v1/listing_photos",{method:"POST",headers:{...JSONH,Prefer:"return=minimal"},body:JSON.stringify({listing_id:id,url:SUPABASE_URL+"/storage/v1/object/public/photos/"+path,position:i})})}
+hsay("Logement publié !","ok");
+["h_t","h_d","h_ci","h_p"].forEach(k=>$(k).value="");$("h_f").value="";
+await mine();load()
+}catch(e){hsay("Échec : "+(e.message||"erreur inconnue"),"err")}
+$("hs").disabled=false};
 boot();
 fillDest();chips();render();load();
 </script>
