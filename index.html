@@ -168,6 +168,7 @@ dialog h2{font-size:24px;margin-bottom:14px}
 <label id="r3" hidden>Durée (mois)<select id="bn"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label>
 <label>Voyageurs<input id="bg" type="number" min="1" value="2"></label>
 <p id="bt" style="margin:0;font-weight:600"></p>
+<p style="margin:0;font-size:13px;color:var(--muted)">Les frais de paiement de l’opérateur s’ajoutent au total et sont affichés avant de payer.</p>
 <p class="msg" id="bm" role="status"></p>
 <button class="btn" id="bk" type="button">Réserver</button>
 <button class="link" id="bc" type="button">Fermer</button>
@@ -235,6 +236,8 @@ dialog h2{font-size:24px;margin-bottom:14px}
 <div id="apend"></div>
 <h3 style="font-size:18px;margin-top:6px">Hôtes</h3>
 <div id="ahosts"></div>
+<h3 style="font-size:18px;margin-top:6px">Reversements aux hôtes</h3>
+<div id="apay"></div>
 <h3 style="font-size:18px;margin-top:6px">Réservations</h3>
 <div id="abook"></div>
 <p class="msg" id="am" role="status"></p>
@@ -467,7 +470,7 @@ sec("2. Comptes","Un compte est nécessaire pour réserver ou publier. Vous four
 sec("3. Rôle de la plateforme","La plateforme met en relation hôtes et voyageurs. Le contrat de séjour est conclu entre l’hôte et le voyageur. Nous encaissons le paiement, puis nous reversons à l’hôte le montant dû, après déduction de notre commission.")+
 sec("4. Obligations des hôtes","L’hôte publie des annonces exactes : description, photos et vidéo réelles, prix et capacité corrects. Chaque nouvelle annonce peut être vérifiée avant sa mise en ligne, et nous pouvons refuser ou retirer une annonce à tout moment. L’hôte garantit qu’il a le droit de proposer le logement et respecte la loi locale.")+
 sec("5. Obligations des voyageurs","Le voyageur respecte le logement, le règlement de l’hôte et le nombre de personnes autorisé. Il répond des dégradations qu’il cause.")+
-sec("6. Prix, paiement et commission",`Les prix sont en francs CFA, par nuit, par jour ou par mois selon l’annonce. Le total est affiché avant la réservation. Le paiement se fait en ligne, par Mobile Money (T-Money, Flooz), via un prestataire de paiement. Une commission de service de ${C} % est prélevée sur chaque réservation.`)+
+sec("6. Prix, paiement et commission",`Les prix sont en francs CFA, par nuit, par jour ou par mois selon l’annonce. Le total est affiché avant la réservation. Le paiement se fait en ligne, par Mobile Money (T-Money, Flooz), via un prestataire de paiement. Une commission de service de ${C} % est prélevée sur chaque réservation. Les frais de paiement de l’opérateur sont à la charge du voyageur et affichés avant le paiement.`)+
 sec("7. Annulation et remboursement","Voir la politique d’annulation et de remboursement.")+
 sec("8. Responsabilité","Nous ne sommes pas responsables de l’état du logement ni de la conduite des hôtes ou des voyageurs, mais nous traitons les signalements et pouvons suspendre les comptes concernés.")+
 sec("9. Suspension","Nous pouvons suspendre un compte en cas de fausse annonce, de fraude ou de non-respect de ces conditions.")+
@@ -573,25 +576,43 @@ try{const d=await rest("/rest/v1/profiles?id=eq."+session.user.id+"&select=role"
 function asay(t,c){const m=$("am");m.textContent=t;m.className="msg "+(c||"")}
 async function adminLoad(){
 try{
-const [ls,ps,bs]=await Promise.all([
+const [ls,ps,bs,pb]=await Promise.all([
 rest("/rest/v1/listings?status=eq.en_attente&select=id,title,description,city,country,price_fcfa,price_unit,max_guests,video_url,host_id,listing_photos(url,position)&order=created_at.asc"),
-rest("/rest/v1/profiles?select=id,full_name,role,host_verified&order=created_at.desc"),
-rest("/rest/v1/bookings?select=id,check_in,check_out,total_fcfa,status,guest_id,listings(title,city)&order=created_at.desc&limit=50")]);
+rest("/rest/v1/profiles?select=id,full_name,role,host_verified,phone&order=created_at.desc"),
+rest("/rest/v1/bookings?select=id,check_in,check_out,total_fcfa,status,guest_id,listings(title,city)&order=created_at.desc&limit=50"),
+rest("/rest/v1/bookings?status=eq.confirmee&select=id,check_in,total_fcfa,listings(title,host_id),payouts(id)&order=check_in.asc")]);
 const nm=id=>{const p=ps.find(x=>x.id===id);return p&&p.full_name?p.full_name:"Hôte sans nom"};
 $("apend").innerHTML=ls.length?ls.map(x=>{
 const ph=(x.listing_photos||[]).sort((a,b)=>a.position-b.position)[0];
 return `<div class="pend">${ph?`<img src="${esc(ph.url)}" alt="">`:""}<b>${esc(x.title)}</b><br>${esc(x.city)}, ${esc(x.country)} · ${x.price_fcfa.toLocaleString("fr-FR")} FCFA par ${esc(x.price_unit)} · ${x.max_guests} voyageurs<br><span style="color:var(--muted)">Hôte : ${esc(nm(x.host_id))}</span>${x.description?`<br>${esc(x.description)}`:""}${x.video_url?`<br><a href="${esc(x.video_url)}" target="_blank" rel="noopener">Voir la vidéo</a>`:""}<div class="row"><button class="btn" data-a="ok" data-id="${x.id}">Valider</button><button class="chip" data-a="no" data-id="${x.id}">Refuser</button></div></div>`}).join(""):`<p class="msg">Aucun logement en attente.</p>`;
 $("ahosts").innerHTML=ps.map(p=>`<div class="mine"><div><b>${esc(p.full_name||"Sans nom")}</b><br><span>${p.role==="admin"?"administrateur":p.host_verified?"hôte vérifié":"non vérifié"}</span></div>${p.role==="admin"?"":`<button class="link" data-a="ver" data-id="${p.id}" data-v="${p.host_verified}">${p.host_verified?"Retirer la vérification":"Vérifier"}</button>`}</div>`).join("")
 ;
+payRender(pb,ps);
 $("abook").innerHTML=bs.length?bs.map(b=>{const l=b.listings||{};return `<div class="mine"><div><b>${esc(l.title||"Logement")}</b><br><span>${fd(b.check_in)} au ${fd(b.check_out)} · ${esc(nm(b.guest_id))}</span><br><span>${b.total_fcfa.toLocaleString("fr-FR")} FCFA · commission ${Math.round(b.total_fcfa*COMMISSION/100).toLocaleString("fr-FR")} FCFA · ${BS[b.status]||b.status}</span></div></div>`}).join(""):`<p class="msg">Aucune réservation.</p>`
 }catch(e){asay("Chargement impossible : "+(e.message||"accès refusé"),"err")}}
+function payRender(pb,ps){
+const today=new Date();today.setHours(0,0,0,0);
+const rows=pb.filter(b=>!(Array.isArray(b.payouts)?b.payouts.length:b.payouts));
+let sum=0;
+const h=rows.map(b=>{
+const l=b.listings||{},p=ps.find(x=>x.id===l.host_id)||{};
+const com=Math.round(b.total_fcfa*COMMISSION/100),amt=b.total_fcfa-com;
+const due=new Date(b.check_in+"T00:00:00");due.setDate(due.getDate()+1);
+const ok=due<=today;if(ok)sum+=amt;
+return `<div class="pend"><b>${esc(l.title||"Logement")}</b><br><span style="color:var(--muted)">Hôte : ${esc(p.full_name||"sans nom")} · ${p.phone?esc(p.phone):"téléphone non renseigné (à demander à l’hôte dans Mon compte)"}</span><br>À reverser : <b>${amt.toLocaleString("fr-FR")} FCFA</b> (total ${b.total_fcfa.toLocaleString("fr-FR")}, commission ${com.toLocaleString("fr-FR")})<br><span style="color:var(--muted)">${ok?"À reverser maintenant":"À reverser à partir du "+due.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})}</span>${ok?`<div class="row"><button class="btn" data-a="paid" data-id="${b.id}" data-host="${esc(l.host_id)}" data-amt="${amt}" data-com="${com}">Marqué comme reversé</button></div>`:""}</div>`}).join("");
+$("apay").innerHTML=(sum?`<p class="msg">Total à reverser maintenant : ${sum.toLocaleString("fr-FR")} FCFA</p>`:"")+(h||`<p class="msg">Aucun reversement en attente.</p>`)}
+async function markPaid(b){
+const ref=prompt("Référence du transfert (facultatif) :","");
+if(ref===null)return;
+await rest("/rest/v1/payouts",{method:"POST",headers:{...JSONH,Prefer:"return=minimal"},body:JSON.stringify({booking_id:b.dataset.id,host_id:b.dataset.host,amount_fcfa:+b.dataset.amt,commission_fcfa:+b.dataset.com,reference:ref.trim()||null})})}
 $("adm").onclick=async()=>{asay("");$("ad").showModal();await adminLoad()};
 $("acl").onclick=()=>$("ad").close();
 $("ad").onclick=async e=>{
 const b=e.target.closest("button[data-a]");if(!b)return;
 const id=b.dataset.id,a=b.dataset.a;
 try{
-if(a==="ok"||a==="no")await rest("/rest/v1/listings?id=eq."+id,{method:"PATCH",headers:{...JSONH,Prefer:"return=minimal"},body:JSON.stringify({status:a==="ok"?"publie":"suspendu"})});
+if(a==="paid"){await markPaid(b)}
+else if(a==="ok"||a==="no")await rest("/rest/v1/listings?id=eq."+id,{method:"PATCH",headers:{...JSONH,Prefer:"return=minimal"},body:JSON.stringify({status:a==="ok"?"publie":"suspendu"})});
 else if(a==="ver")await rest("/rest/v1/profiles?id=eq."+id,{method:"PATCH",headers:{...JSONH,Prefer:"return=minimal"},body:JSON.stringify({host_verified:b.dataset.v!=="true"})});
 asay("");await adminLoad();load()
 }catch(err){asay("Action impossible : "+(err.message||"accès refusé"),"err")}};
