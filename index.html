@@ -101,7 +101,7 @@ dialog h2{font-size:24px;margin-bottom:14px}
 
 <div class="hero">
 <h1>Un chez-vous partout en Afrique</h1>
-<p>Réservez un logement chez l’habitant ou à l’hôtel, et payez par Mobile Money ou par carte.</p>
+<p>Réservez un logement chez l’habitant ou à l’hôtel, et payez par Mobile Money (T-Money, Flooz).</p>
 <form class="search" id="form">
 <div class="field"><label for="dest">Destination</label>
 <select id="dest"><option value="">Toutes les villes</option></select></div>
@@ -124,7 +124,7 @@ dialog h2{font-size:24px;margin-bottom:14px}
 <section>
 <h2 style="margin-bottom:18px;font-size:clamp(24px,4vw,34px)">Pourquoi réserver ici</h2>
 <div class="why">
-<div><h3>Paiement local</h3><p>Moov Money, T-Money, Visa et Mastercard.</p></div>
+<div><h3>Paiement local</h3><p>T-Money et Flooz, directement depuis votre téléphone.</p></div>
 <div><h3>Confirmation immédiate</h3><p>Votre séjour est validé dès le paiement.</p></div>
 <div><h3>Hôte joignable</h3><p>Posez vos questions avant et pendant le séjour.</p></div>
 <div><h3>Annulation en un clic</h3><p>Depuis votre espace réservations.</p></div>
@@ -182,7 +182,7 @@ dialog h2{font-size:24px;margin-bottom:14px}
 <label>Titre<input id="h_t" type="text" maxlength="80"></label>
 <label>Description<textarea id="h_d" rows="3" maxlength="600"></textarea></label>
 <label>Type<select id="h_ty"><option value="hotel">Hôtel</option><option value="appartement">Appartement</option><option value="villa">Villa</option><option value="auberge">Auberge</option></select></label>
-<label>Pays<input id="h_co" type="text" value="Togo"></label>
+<label>Pays<select id="h_co"></select></label>
 <label>Ville<input id="h_ci" type="text"></label>
 <label>Le prix est calculé<select id="h_u"><option value="nuit">Par nuit</option><option value="jour">Par jour</option><option value="mois">Par mois</option></select></label>
 <label>Prix (FCFA)<input id="h_p" type="number" min="1000" step="500"></label>
@@ -245,6 +245,9 @@ dialog h2{font-size:24px;margin-bottom:14px}
 <script>
 const SUPABASE_URL="https://mzigwybhjwzkooxgkulz.supabase.co";
 const SUPABASE_KEY="sb_publishable_1v49dLQJZYHh_tu5r3MbFQ_0wPzXYiO";
+/* Pays ouverts aux annonces et aux paiements. Ajoutez un pays ici quand son paiement est confirmé,
+   par exemple : ["Togo","Bénin"]. Choix possibles : Togo, Bénin, Côte d'Ivoire, Sénégal */
+const PAYS_ACTIFS=["Togo"];
 const TYPES={hotel:"Hôtel",appartement:"Appartement",villa:"Villa",auberge:"Auberge"};
 const PALETTE=["#232A6B,#F2B01E","#1E7A5A,#F2B01E","#1E7A5A,#232A6B","#F2B01E,#232A6B","#232A6B,#1E7A5A","#F2B01E,#1E7A5A"];
 let L=[
@@ -274,7 +277,7 @@ $("cur").onclick=()=>{cur=cur==="FCFA"?"€":"FCFA";$("cur").textContent=cur;ren
 const today=new Date().toISOString().slice(0,10);$("d1").min=today;$("d2").min=today;
 async function load(){
 try{
-const r=await fetch(SUPABASE_URL+"/rest/v1/listings?status=eq.publie&select=id,title,description,type,city,price_fcfa,max_guests,price_unit,video_url,listing_photos(url,position)&order=created_at.desc",{headers:{apikey:SUPABASE_KEY}});
+const r=await fetch(SUPABASE_URL+"/rest/v1/listings?status=eq.publie&country=in.("+PAYS_ACTIFS.map(p=>'"'+encodeURIComponent(p)+'"').join(",")+")&select=id,title,description,type,city,price_fcfa,max_guests,price_unit,video_url,listing_photos(url,position)&order=created_at.desc",{headers:{apikey:SUPABASE_KEY}});
 if(!r.ok)throw new Error(r.status);
 const d=await r.json();
 if(d.length){L=d.map((x,i)=>({id:x.id,u:x.price_unit,v:x.video_url,img:((x.listing_photos||[]).sort((a,b)=>a.position-b.position)[0]||{}).url,d:x.description,g:x.max_guests,n:x.title,c:x.city,t:TYPES[x.type]||x.type,p:x.price_fcfa,a:PALETTE[i%PALETTE.length]}));fillDest();render()}
@@ -378,9 +381,12 @@ if(!session){$("dd").close();setMode("login");say("Connectez-vous pour réserver
 $("bk").disabled=true;
 try{
 await ensureFresh();
-const r=await fetch(SUPABASE_URL+"/rest/v1/bookings",{method:"POST",headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({listing_id:pick.id,guest_id:session.user.id,check_in:$("b1").value,check_out:$("b2").value,guests:g,total_fcfa:n*pick.p})});
+const r=await fetch(SUPABASE_URL+"/rest/v1/bookings?select=id",{method:"POST",headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify({listing_id:pick.id,guest_id:session.user.id,check_in:$("b1").value,check_out:$("b2").value,guests:g,total_fcfa:n*pick.p})});
 if(!r.ok)throw await r.json().catch(()=>({}));
-bsay("Réservation enregistrée ! Retrouvez-la dans votre compte (votre nom en haut de la page).","ok")
+const row=await r.json();
+bsay("Réservation enregistrée. Ouverture du paiement…","ok");
+try{await payBooking(row[0].id)}
+catch(e){bsay("Réservation enregistrée, mais le paiement n’est pas disponible pour le moment. Retrouvez-la dans votre compte (votre nom en haut de la page).","ok")}
 }catch(d){
 bsay(d.code==="23P01"?"Ces dates ne sont pas disponibles pour ce logement.":"Impossible de réserver : "+(d.message||"erreur inconnue"),"err")}
 $("bk").disabled=false};
@@ -404,6 +410,7 @@ $("mine").innerHTML=d.length?d.map(x=>`<div class="mine"><div><b>${esc(x.title)}
 $("beHost").onclick=async()=>{
 if(!session){setMode("login");say("Connectez-vous pour devenir hôte.");$("dlg").showModal();return}
 hsay("");$("hd").showModal();await mine()};
+PAYS_ACTIFS.forEach(p=>$("h_co").add(new Option(p,p)));
 $("hc").onclick=()=>$("hd").close();
 $("mine").onclick=async e=>{
 const b=e.target.closest("button[data-a]");if(!b)return;
@@ -460,7 +467,7 @@ sec("2. Comptes","Un compte est nécessaire pour réserver ou publier. Vous four
 sec("3. Rôle de la plateforme","La plateforme met en relation hôtes et voyageurs. Le contrat de séjour est conclu entre l’hôte et le voyageur. Nous encaissons le paiement, puis nous reversons à l’hôte le montant dû, après déduction de notre commission.")+
 sec("4. Obligations des hôtes","L’hôte publie des annonces exactes : description, photos et vidéo réelles, prix et capacité corrects. Chaque nouvelle annonce peut être vérifiée avant sa mise en ligne, et nous pouvons refuser ou retirer une annonce à tout moment. L’hôte garantit qu’il a le droit de proposer le logement et respecte la loi locale.")+
 sec("5. Obligations des voyageurs","Le voyageur respecte le logement, le règlement de l’hôte et le nombre de personnes autorisé. Il répond des dégradations qu’il cause.")+
-sec("6. Prix, paiement et commission",`Les prix sont en francs CFA, par nuit, par jour ou par mois selon l’annonce. Le total est affiché avant la réservation. Le paiement se fait en ligne, par Mobile Money ou par carte, via un prestataire de paiement. Une commission de service de ${C} % est prélevée sur chaque réservation.`)+
+sec("6. Prix, paiement et commission",`Les prix sont en francs CFA, par nuit, par jour ou par mois selon l’annonce. Le total est affiché avant la réservation. Le paiement se fait en ligne, par Mobile Money (T-Money, Flooz), via un prestataire de paiement. Une commission de service de ${C} % est prélevée sur chaque réservation.`)+
 sec("7. Annulation et remboursement","Voir la politique d’annulation et de remboursement.")+
 sec("8. Responsabilité","Nous ne sommes pas responsables de l’état du logement ni de la conduite des hôtes ou des voyageurs, mais nous traitons les signalements et pouvons suspendre les comptes concernés.")+
 sec("9. Suspension","Nous pouvons suspendre un compte en cas de fausse annonce, de fraude ou de non-respect de ces conditions.")+
@@ -497,7 +504,7 @@ function fd(s){return new Date(s+"T00:00:00").toLocaleDateString("fr-FR",{day:"n
 function psay(t,c){const m=$("pm");m.textContent=t;m.className="msg "+(c||"")}
 function bcard(b,cancel,who){
 const l=b.listings||{};
-return `<div class="mine"><div><b>${esc(l.title||"Logement")}</b><br><span>${esc(l.city||"")} · du ${fd(b.check_in)} au ${fd(b.check_out)} · ${b.guests} voyageur${b.guests>1?"s":""}</span><br><span>${b.total_fcfa.toLocaleString("fr-FR")} FCFA · ${BS[b.status]||b.status}${who?" · "+esc(who):""}</span></div>${cancel&&(b.status==="en_attente"||b.status==="confirmee")?`<button class="link" data-a="cancel" data-id="${b.id}">Annuler</button>`:""}</div>`}
+return `<div class="mine"><div><b>${esc(l.title||"Logement")}</b><br><span>${esc(l.city||"")} · du ${fd(b.check_in)} au ${fd(b.check_out)} · ${b.guests} voyageur${b.guests>1?"s":""}</span><br><span>${b.total_fcfa.toLocaleString("fr-FR")} FCFA · ${BS[b.status]||b.status}${who?" · "+esc(who):""}</span></div>${cancel&&(b.status==="en_attente"||b.status==="confirmee")?`<span style="display:flex;flex-direction:column;align-items:flex-end">${b.status==="en_attente"?`<button class="link" data-a="pay" data-id="${b.id}">Payer</button><button class="link" data-a="check" data-id="${b.id}">Vérifier</button>`:""}<button class="link" data-a="cancel" data-id="${b.id}">Annuler</button></span>`:""}</div>`}
 async function account(){
 try{
 const me=await rest("/rest/v1/profiles?id=eq."+session.user.id+"&select=full_name,phone");
@@ -522,10 +529,42 @@ if(u&&u.id){session.user=u;keep(session);paint()}
 psay("Profil enregistré.","ok")
 }catch(err){psay("Enregistrement impossible : "+(err.message||"erreur"),"err")}};
 $("md").onclick=async e=>{
-const b=e.target.closest("button[data-a=cancel]");
-if(!b||!confirm("Annuler cette réservation ?"))return;
-try{await rest("/rest/v1/bookings?id=eq."+b.dataset.id,{method:"PATCH",headers:{...JSONH,Prefer:"return=minimal"},body:JSON.stringify({status:"annulee"})});await account()}
-catch(err){psay("Annulation impossible : "+(err.message||"erreur"),"err")}};
+const b=e.target.closest("button[data-a]");
+if(!b)return;
+const a=b.dataset.a,id=b.dataset.id;
+try{
+if(a==="pay"){psay("Ouverture du paiement…");await payBooking(id);return}
+if(a==="check"){
+psay("Vérification…");
+const d=await fn("confirm-payment",{booking_id:id});
+await account();
+psay(d.status==="approved"?"Paiement confirmé !":"Paiement pas encore confirmé.",d.status==="approved"?"ok":"");
+return}
+if(!confirm("Annuler cette réservation ?"))return;
+await rest("/rest/v1/bookings?id=eq."+id,{method:"PATCH",headers:{...JSONH,Prefer:"return=minimal"},body:JSON.stringify({status:"annulee"})});
+await account()
+}catch(err){psay("Action impossible : "+(err.message||"erreur"),"err")}};
+async function fn(name,body){
+await ensureFresh();
+const r=await fetch(SUPABASE_URL+"/functions/v1/"+name,{method:"POST",headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},body:JSON.stringify(body)});
+const d=await r.json().catch(()=>({}));
+if(!r.ok)throw new Error(d.error||"Erreur "+r.status);
+return d}
+async function payBooking(id){
+const d=await fn("create-payment",{booking_id:id});
+if(!d.url)throw new Error("Lien de paiement manquant");
+location.href=d.url}
+async function backFromPayment(){
+const m=(location.search.match(/paiement=([0-9a-f-]{36})/)||[])[1];
+if(!m)return;
+history.replaceState(null,"",location.pathname);
+if(!session){setMode("login");say("Connectez-vous pour confirmer votre paiement.");$("dlg").showModal();return}
+$("md").showModal();psay("Vérification du paiement…");
+try{
+const d=await fn("confirm-payment",{booking_id:m});
+await account();
+psay(d.status==="approved"?"Paiement confirmé. Votre réservation est confirmée !":"Paiement non confirmé pour le moment. Touchez Vérifier dans quelques instants.",d.status==="approved"?"ok":"err")
+}catch(e){await account();psay("Vérification impossible : "+(e.message||"erreur"),"err")}}
 /* ---- Administration ---- */
 async function checkAdmin(){
 $("adm").hidden=true;
@@ -556,7 +595,7 @@ if(a==="ok"||a==="no")await rest("/rest/v1/listings?id=eq."+id,{method:"PATCH",h
 else if(a==="ver")await rest("/rest/v1/profiles?id=eq."+id,{method:"PATCH",headers:{...JSONH,Prefer:"return=minimal"},body:JSON.stringify({host_verified:b.dataset.v!=="true"})});
 asay("");await adminLoad();load()
 }catch(err){asay("Action impossible : "+(err.message||"accès refusé"),"err")}};
-boot();
+boot().then(backFromPayment);
 fillDest();chips();render();load();
 </script>
 </body>
