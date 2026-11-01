@@ -138,6 +138,28 @@ footer{background:var(--surface);border-top:1px solid var(--line)}
 #chips{display:none}
 dialog{border-radius:12px}
 @media(max-width:520px){.hero{padding-top:28px}.cats a{min-width:78px;padding:9px 12px 8px}}
+#detail{padding:22px 0 10px}
+.back{display:inline-block;margin-bottom:14px;color:var(--muted);text-decoration:none;font-size:14px;font-weight:500}
+.back:hover{color:var(--ink)}
+.dgrid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:32px;align-items:start}
+.gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:8px;border-radius:12px;scrollbar-width:none}
+.gal::-webkit-scrollbar{display:none}
+.gimg{flex:0 0 100%;aspect-ratio:16/10;scroll-snap-align:start;border-radius:12px;background-color:var(--line)}
+#detail h1{font-size:clamp(24px,4vw,34px);font-weight:800;letter-spacing:-.03em;margin:18px 0 4px}
+.dmeta{color:var(--muted);margin:0 0 14px}
+#dv{width:100%;border-radius:12px;margin:0 0 10px}
+#detail h3{font-size:18px;margin:16px 0 6px}
+#dx{margin:0;white-space:pre-line;max-width:70ch}
+.bcard{position:sticky;top:132px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:18px;display:flex;flex-direction:column;gap:12px}
+.bcard label{font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.bcard input,.bcard select{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:11px 12px;font:400 16px Inter,sans-serif;width:100%}
+.bprice{font-size:15px;color:var(--muted)}
+.bprice b{font-size:26px;color:var(--ink);font-weight:700}
+.bcard .msg{margin:0;min-height:18px;font-size:14px}
+.bcard .msg.err{color:#D64545}
+.bcard .msg.ok{color:var(--leaf)}
+.cats a:focus-visible{outline:2px solid var(--brand);outline-offset:-3px;border-radius:4px}
+@media(max-width:860px){.dgrid{grid-template-columns:1fr}.bcard{position:static}}
 </style>
 </head>
 <body>
@@ -181,6 +203,31 @@ dialog{border-radius:12px}
 </form>
 <section class="tiles-wrap" id="tiles"></section>
 
+<section id="detail" hidden>
+<a class="back" id="bc" href="#">‹ Retour aux annonces</a>
+<div class="dgrid">
+<div>
+<div class="gal" id="gal"></div>
+<h1 id="dt"></h1>
+<p class="dmeta" id="dm"></p>
+<video id="dv" controls preload="none" playsinline hidden></video>
+<h3>Description</h3>
+<p id="dx"></p>
+</div>
+<aside class="bcard" aria-label="Réservation">
+<div class="bprice" id="dp"></div>
+<label>Arrivée<input id="b1" type="date"></label>
+<label id="r2">Départ<input id="b2" type="date"></label>
+<label id="r3" hidden>Durée (mois)<select id="bn"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label>
+<label>Voyageurs<input id="bg" type="number" min="1" value="2"></label>
+<p id="bt" style="margin:0;font-weight:600"></p>
+<p style="margin:0;font-size:13px;color:var(--muted)">Les frais de paiement de l’opérateur s’ajoutent au total et sont affichés avant de payer.</p>
+<p class="msg" id="bm" role="status"></p>
+<button class="btn" id="bk" type="button">Réserver</button>
+</aside>
+</div>
+</section>
+
 <section id="logements">
 <div class="head">
 <h2 id="lt">Logements disponibles</h2><span class="count" id="cc"></span>
@@ -189,7 +236,7 @@ dialog{border-radius:12px}
 <div class="grid" id="grid"></div>
 </section>
 
-<section>
+<section id="why">
 <h2 class="sect">Pourquoi réserver ici</h2>
 <div class="why">
 <div><h3>Paiement local</h3><p>T-Money et Flooz, directement depuis votre téléphone.</p></div>
@@ -225,23 +272,7 @@ dialog{border-radius:12px}
 </form>
 </dialog>
 
-<dialog id="dd" aria-labelledby="dt">
-<div class="af">
-<h2 id="dt"></h2>
-<p id="dm" style="margin:0;color:var(--muted)"></p>
-<p id="dx" style="margin:0"></p>
-<video id="dv" controls preload="none" playsinline hidden style="width:100%;border-radius:10px"></video>
-<label>Arrivée<input id="b1" type="date"></label>
-<label id="r2">Départ<input id="b2" type="date"></label>
-<label id="r3" hidden>Durée (mois)<select id="bn"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label>
-<label>Voyageurs<input id="bg" type="number" min="1" value="2"></label>
-<p id="bt" style="margin:0;font-weight:600"></p>
-<p style="margin:0;font-size:13px;color:var(--muted)">Les frais de paiement de l’opérateur s’ajoutent au total et sont affichés avant de payer.</p>
-<p class="msg" id="bm" role="status"></p>
-<button class="btn" id="bk" type="button">Réserver</button>
-<button class="link" id="bc" type="button">Fermer</button>
-</div>
-</dialog>
+
 
 <dialog id="hd" aria-labelledby="ht">
 <div class="af">
@@ -351,7 +382,7 @@ try{
 const r=await fetch(SUPABASE_URL+"/rest/v1/listings?status=eq.publie&country=in.("+PAYS_ACTIFS.map(p=>'"'+encodeURIComponent(p)+'"').join(",")+")&select=id,title,description,type,city,price_fcfa,max_guests,price_unit,video_url,listing_photos(url,position)&order=created_at.desc",{headers:{apikey:SUPABASE_KEY}});
 if(!r.ok)throw new Error(r.status);
 const d=await r.json();
-if(d.length){L=d.map((x,i)=>({id:x.id,u:x.price_unit,v:x.video_url,img:((x.listing_photos||[]).sort((a,b)=>a.position-b.position)[0]||{}).url,d:x.description,g:x.max_guests,n:x.title,c:x.city,t:TYPES[x.type]||x.type,p:x.price_fcfa,a:PALETTE[i%PALETTE.length]}));fillDest();render()}
+if(d.length){L=d.map((x,i)=>({id:x.id,u:x.price_unit,v:x.video_url,imgs:(x.listing_photos||[]).sort((a,b)=>a.position-b.position).map(q=>q.url),img:((x.listing_photos||[]).sort((a,b)=>a.position-b.position)[0]||{}).url,d:x.description,g:x.max_guests,n:x.title,c:x.city,t:TYPES[x.type]||x.type,p:x.price_fcfa,a:PALETTE[i%PALETTE.length]}));fillDest();render()}
 }catch(e){console.error("Supabase indisponible, données d’exemple affichées",e)}
 }
 /* ---- Authentification ---- */
@@ -411,19 +442,21 @@ function upd(){
 const n=units(),u=pick.u||"nuit";
 const lab=u==="mois"?"mois":u==="jour"?(n>1?"jours":"jour"):(n>1?"nuits":"nuit");
 $("bt").textContent=n>0?n+" "+lab+" · total "+money(n*pick.p):"Choisissez vos dates"}
-function openDetail(x){
-if(!x)return;
+function openDetail(x){if(x&&x.id)location.hash="l-"+x.id}
+function fillDetail(x){
 pick=x;
 $("dt").textContent=x.n;
 $("dm").textContent=x.t+" · "+x.c;
-$("dx").textContent=(x.d?x.d+" ":"")+money(x.p)+" par "+(x.u||"nuit")+(x.g?" · jusqu’à "+x.g+" voyageurs":"");
+$("dx").textContent=x.d||"Aucune description fournie.";
+$("dp").innerHTML="<b>"+money(x.p)+"</b> par "+esc(x.u||"nuit")+(x.g?" · jusqu’à "+x.g+" voyageurs":"");
+$("gal").innerHTML=(x.imgs&&x.imgs.length?x.imgs:[null]).map(u=>`<div class="gimg" style="background:${u?"url('"+encodeURI(u)+"') center/cover":bg(x)}"></div>`).join("");
 $("b1").min=today;$("b2").min=today;$("b1").value="";$("b2").value="";
 $("bg").max=x.g||12;$("bg").value=Math.min(guests,x.g||12);
 const m=x.u==="mois";
 $("r2").hidden=m;$("r3").hidden=!m;$("bn").value="1";
-const v=$("dv");v.hidden=!x.v;if(x.v)v.src=x.v;else v.removeAttribute("src");
-bsay("");upd();$("dd").showModal()}
-$("dd").addEventListener("close",()=>$("dv").pause());
+const v=$("dv");v.pause();v.hidden=!x.v;if(x.v)v.src=x.v;else v.removeAttribute("src");
+bsay("");upd()}
+window.addEventListener("hashchange",()=>$("dv").pause());
 function units(){return pick.u==="mois"?(nights()>0?+$("bn").value:0):nights()}
 function setEnd(){
 const a=$("b1").value;if(!a)return;
@@ -438,7 +471,7 @@ if(pick.u==="mois")setEnd();
 upd()};
 $("b2").onchange=upd;
 $("bn").onchange=()=>{setEnd();upd()};
-$("bc").onclick=()=>$("dd").close();
+$("bc").onclick=e=>{e.preventDefault();const k=Object.keys(ROUTES).find(q=>ROUTES[q].t===pick.t);location.hash=k||""};
 async function ensureFresh(){
 if(session.expires_at>Date.now()+30000)return;
 try{setSession(await authCall("/auth/v1/token?grant_type=refresh_token",{refresh_token:session.refresh_token}))}
@@ -448,7 +481,7 @@ const n=units(),g=+$("bg").value;
 if(!pick.id){bsay("Logement d’exemple : réservation indisponible.","err");return}
 if(n<1){bsay("Choisissez une date de départ après la date d’arrivée.","err");return}
 if(!(g>=1)||(pick.g&&g>pick.g)){bsay("Nombre de voyageurs invalide"+(pick.g?" (maximum "+pick.g+")":"")+".","err");return}
-if(!session){$("dd").close();setMode("login");say("Connectez-vous pour réserver.");$("dlg").showModal();return}
+if(!session){setMode("login");say("Connectez-vous pour réserver.");$("dlg").showModal();return}
 $("bk").disabled=true;
 try{
 await ensureFresh();
@@ -711,18 +744,23 @@ function paintTiles(){
 $("tiles").innerHTML=Object.keys(ROUTES).filter(k=>k).map(k=>{
 const n=L.filter(x=>x.t===ROUTES[k].t).length;
 return `<a class="tile" href="#${k}">${svg(IC[ROUTES[k].i])}<b>${ROUTES[k].l}</b><span>${n} logement${n>1?"s":""}</span></a>`}).join("")}
+let routing=false;
 const render0=render;
-render=function(){render0();paintTiles();$("cc").textContent=shown.length+(shown.length>1?" annonces":" annonce")};
+render=function(){render0();paintTiles();$("cc").textContent=shown.length+(shown.length>1?" annonces":" annonce");if(!routing&&/^#l-/.test(location.hash)&&!(pick&&location.hash==="#l-"+pick.id))route()};
 function route(){
-const k=location.hash.replace("#",""),r=ROUTES[k]||ROUTES[""],cat=!!(k&&ROUTES[k]);
+if(routing)return;routing=true;
+const k0=location.hash.replace("#",""),x=k0.startsWith("l-")?L.find(y=>y.id===k0.slice(2)):null,det=!!x,k=det?"":k0,r=ROUTES[k]||ROUTES[""],cat=!!(k&&ROUTES[k]);
 type=r.t;chips();
-$("hero").hidden=cat;$("tiles").hidden=cat;$("cathead").hidden=!cat;
+if(det)fillDetail(x);
+["form","logements","why","hote"].forEach(i=>$(i).hidden=det);
+$("detail").hidden=!det;
+$("hero").hidden=cat||det;$("tiles").hidden=cat||det;$("cathead").hidden=!cat||det;
 if(cat){$("ct").textContent=r.title;$("cd").textContent=r.d}
 $("lt").textContent=cat?"Annonces":r.title;
-document.querySelectorAll("#cats a").forEach(a=>a.toggleAttribute("aria-current",a.dataset.k===(cat?k:"")));
+document.querySelectorAll("#cats a").forEach(a=>a.toggleAttribute("aria-current",!det&&a.dataset.k===(cat?k:"")));
 document.querySelectorAll("#cats a[aria-current]").forEach(a=>a.setAttribute("aria-current","page"));
-document.title=(cat?r.title+" | ":"")+"Akpé Séjours";
-render();window.scrollTo(0,0)}
+document.title=(det?x.n+" | ":cat?r.title+" | ":"")+"Akpé Séjours";
+render();routing=false;window.scrollTo(0,0)}
 window.addEventListener("hashchange",route);
 $("beHost2").onclick=()=>$("beHost").click();
 $("acct").addEventListener("click",e=>{if(e.target.closest("button"))$("acct").open=false});
