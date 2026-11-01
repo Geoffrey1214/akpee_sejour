@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Akpé Séjours | Logez-vous partout en Afrique</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Figtree:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
 :root{--bg:#F6F7FB;--surface:#fff;--ink:#17193A;--muted:#5A5E7A;--line:#DDE0EC;--brand:#232A6B;--brand-ink:#fff;--sun:#F2B01E;--leaf:#1E7A5A;color-scheme:light;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -84,24 +84,92 @@ dialog h2{font-size:24px;margin-bottom:14px}
 @media(max-width:860px){.search{grid-template-columns:1fr 1fr}.search .field:first-child{grid-column:1/-1}.btn{grid-column:1/-1}}
 @media(prefers-reduced-motion:no-preference){.card{transition:transform .15s}.card:hover{transform:translateY(-3px)}}
 </style>
+<style id="pro">
+:root{--bg:#F5F6F8;--surface:#fff;--ink:#101828;--muted:#586174;--line:#DCE0E6;--brand:#14213D;--brand-ink:#fff;--sun:#B8862B;--leaf:#1F7A5A}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0D1220;--surface:#151B2C;--ink:#EDF0F5;--muted:#98A2B3;--line:#27304A;--brand:#D4A93C;--brand-ink:#101828;--leaf:#4FC79A}}
+body{font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.logo{font-family:Inter,system-ui,sans-serif;letter-spacing:-.02em}
+.wrap{max-width:1180px}
+.topline{height:3px;background:linear-gradient(90deg,var(--sun) 0 34%,var(--leaf) 34% 67%,var(--brand) 67%)}
+header.top{display:block;padding:0;position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px}
+.logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;color:var(--ink);text-decoration:none}
+.logo i{width:30px;height:30px;border-radius:7px;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font:700 16px Inter,sans-serif;font-style:normal}
+.tools{display:flex;align-items:center;gap:8px}
+.cur{border-radius:8px;font:500 13px Inter,sans-serif;padding:8px 12px}
+.acct{position:relative}
+.acct summary{list-style:none;cursor:pointer;width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--line);border-radius:8px;color:var(--ink);background:var(--surface)}
+.acct summary::-webkit-details-marker{display:none}
+.amenu{position:absolute;right:0;top:46px;min-width:210px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 28px rgba(16,24,40,.14);padding:6px;display:flex;flex-direction:column;z-index:40}
+.amenu .cur{border:0;background:none;text-align:left;padding:10px 12px;border-radius:6px;font:500 14px Inter,sans-serif;color:var(--ink);cursor:pointer}
+.amenu .cur:hover{background:var(--bg)}
+.amenu .cur[hidden]{display:none}
+.catbar{display:block;border-top:1px solid var(--line)}
+[hidden]{display:none!important}
+.cats{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cats a{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 16px 9px;min-width:86px;font-size:12.5px;font-weight:500;color:var(--muted);text-decoration:none;border-bottom:2px solid transparent;white-space:nowrap}
+.cats a:hover{color:var(--ink)}
+.cats a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--brand);font-weight:600}
+.hero{padding:44px 0 22px}
+.hero h1{font-size:clamp(30px,5vw,50px);font-weight:800;letter-spacing:-.035em;line-height:1.07;max-width:20ch}
+.hero p{font-size:17px;color:var(--muted);max-width:52ch;margin:14px 0 0}
+.cathead{padding:34px 0 18px}
+.cathead h1{font-size:clamp(26px,4vw,38px);font-weight:800;letter-spacing:-.03em}
+.cathead p{color:var(--muted);margin:6px 0 0}
+.search{border-radius:10px;box-shadow:0 1px 3px rgba(16,24,40,.07)}
+.btn{border-radius:8px;font-family:Inter,sans-serif;font-weight:600}
+.tiles-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;padding:26px 0 4px}
+.tile{display:flex;flex-direction:column;gap:6px;padding:16px;border:1px solid var(--line);border-radius:10px;background:var(--surface);text-decoration:none;color:var(--ink)}
+.tile svg{color:var(--brand);width:26px;height:26px}
+.tile b{font-size:16px;font-weight:600}
+.tile span{font-size:13px;color:var(--muted)}
+.tile:hover{border-color:var(--ink)}
+.head h2{font-size:22px;font-weight:700}
+.count{color:var(--muted);font-size:14px;margin-left:10px}
+.card{border-radius:10px;box-shadow:none}
+.card:hover{transform:none;border-color:var(--muted)}
+.photo span{border-radius:6px;font-size:12px;font-weight:600}
+.sect{margin:0 0 16px;font-size:22px;font-weight:700}
+.why div{border-left:3px solid var(--brand)}
+.host{border-radius:12px}
+.host .btn{background:var(--surface);color:var(--ink)}
+footer{background:var(--surface);border-top:1px solid var(--line)}
+#chips{display:none}
+dialog{border-radius:12px}
+@media(max-width:520px){.hero{padding-top:28px}.cats a{min-width:78px;padding:9px 12px 8px}}
+</style>
 </head>
 <body>
-<div class="band"></div>
-<div class="wrap">
-<header>
-<a class="logo" href="#">Akpé Séjours</a>
-<nav>
-<a href="#logements">Hébergements</a><a href="#">Transferts</a><a href="#hote">Devenir hôte</a>
+<div class="topline"></div>
+<header class="top">
+<div class="wrap bar">
+<a class="logo" href="#" aria-label="Akpé Séjours, accueil"><i>A</i>Akpé Séjours</a>
+<div class="tools">
 <button class="cur" id="cur" type="button" aria-label="Changer de devise">FCFA</button>
+<details class="acct" id="acct">
+<summary aria-label="Mon espace"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></summary>
+<div class="amenu">
+<button class="cur" id="beHost2" type="button">Devenir hôte</button>
 <button class="cur" id="who" type="button" hidden></button>
 <button class="cur" id="adm" type="button" hidden>Administration</button>
 <button class="cur" id="auth" type="button">Connexion</button>
-</nav>
+</div>
+</details>
+</div>
+</div>
+<nav class="catbar" aria-label="Catégories de logements"><div class="wrap cats" id="cats"></div></nav>
 </header>
 
-<div class="hero">
-<h1>Un chez-vous partout en Afrique</h1>
-<p>Réservez un logement chez l’habitant ou à l’hôtel, et payez par Mobile Money (T-Money, Flooz).</p>
+<div class="wrap">
+<section class="hero" id="hero">
+<h1>Réservez votre hébergement en toute confiance</h1>
+<p>Hôtels, appartements, villas et auberges vérifiés. Paiement sécurisé par Mobile Money.</p>
+</section>
+<section class="cathead" id="cathead" hidden>
+<h1 id="ct"></h1>
+<p id="cd"></p>
+</section>
 <form class="search" id="form">
 <div class="field"><label for="dest">Destination</label>
 <select id="dest"><option value="">Toutes les villes</option></select></div>
@@ -111,18 +179,18 @@ dialog h2{font-size:24px;margin-bottom:14px}
 <div class="guests"><button type="button" id="m" aria-label="Moins">−</button><span id="g">2</span><button type="button" id="p" aria-label="Plus">+</button></div></div>
 <button class="btn" type="submit">Rechercher</button>
 </form>
-</div>
+<section class="tiles-wrap" id="tiles"></section>
 
 <section id="logements">
 <div class="head">
-<h2>Logements disponibles</h2>
+<h2 id="lt">Logements disponibles</h2><span class="count" id="cc"></span>
 <div class="chips" id="chips"></div>
 </div>
 <div class="grid" id="grid"></div>
 </section>
 
 <section>
-<h2 style="margin-bottom:18px;font-size:clamp(24px,4vw,34px)">Pourquoi réserver ici</h2>
+<h2 class="sect">Pourquoi réserver ici</h2>
 <div class="why">
 <div><h3>Paiement local</h3><p>T-Money et Flooz, directement depuis votre téléphone.</p></div>
 <div><h3>Confirmation immédiate</h3><p>Votre séjour est validé dès le paiement.</p></div>
@@ -182,7 +250,7 @@ dialog h2{font-size:24px;margin-bottom:14px}
 <h3 style="font-size:18px;margin-top:6px">Ajouter un logement</h3>
 <label>Titre<input id="h_t" type="text" maxlength="80"></label>
 <label>Description<textarea id="h_d" rows="3" maxlength="600"></textarea></label>
-<label>Type<select id="h_ty"><option value="hotel">Hôtel</option><option value="appartement">Appartement</option><option value="villa">Villa</option><option value="auberge">Auberge</option></select></label>
+<label>Type<select id="h_ty"><option value="hotel">Hôtel</option><option value="appartement">Appartement</option><option value="villa">Villa</option><option value="auberge">Auberge</option><option value="autre">Autre (chambre, studio, maison…)</option></select></label>
 <label>Pays<select id="h_co"></select></label>
 <label>Ville<input id="h_ci" type="text"></label>
 <label>Le prix est calculé<select id="h_u"><option value="nuit">Par nuit</option><option value="jour">Par jour</option><option value="mois">Par mois</option></select></label>
@@ -251,7 +319,7 @@ const SUPABASE_KEY="sb_publishable_1v49dLQJZYHh_tu5r3MbFQ_0wPzXYiO";
 /* Pays ouverts aux annonces et aux paiements. Ajoutez un pays ici quand son paiement est confirmé,
    par exemple : ["Togo","Bénin"]. Choix possibles : Togo, Bénin, Côte d'Ivoire, Sénégal */
 const PAYS_ACTIFS=["Togo"];
-const TYPES={hotel:"Hôtel",appartement:"Appartement",villa:"Villa",auberge:"Auberge"};
+const TYPES={hotel:"Hôtel",appartement:"Appartement",villa:"Villa",auberge:"Auberge",autre:"Autre"};
 const PALETTE=["#232A6B,#F2B01E","#1E7A5A,#F2B01E","#1E7A5A,#232A6B","#F2B01E,#232A6B","#232A6B,#1E7A5A","#F2B01E,#1E7A5A"];
 let L=[
 {n:"Hôtel Le Palmier",c:"Lomé",t:"Hôtel",p:28000,r:4.6,a:"#232A6B,#F2B01E"},
@@ -262,7 +330,7 @@ let L=[
 {n:"Villa Teranga",c:"Dakar",t:"Villa",p:70000,r:4.7,a:"#F2B01E,#1E7A5A"},
 {n:"Hôtel du Wouri",c:"Douala",t:"Hôtel",p:35000,r:4.4,a:"#232A6B,#F2B01E"},
 {n:"Auberge Les Cascades",c:"Kpalimé",t:"Auberge",p:9000,r:4.6,a:"#1E7A5A,#F2B01E"}];
-const types=["Tous","Hôtel","Appartement","Villa","Auberge"];
+const types=["Tous","Hôtel","Appartement","Villa","Auberge","Autre"];
 let type="Tous",cur="FCFA",guests=2;
 const $=id=>document.getElementById(id);
 function fillDest(){const s=$("dest"),v=s.value;s.length=1;[...new Set(L.map(x=>x.c))].forEach(c=>s.add(new Option(c,c)));s.value=v}
@@ -298,7 +366,7 @@ return d}
 function setSession(d){session={access_token:d.access_token,refresh_token:d.refresh_token,expires_at:Date.now()+d.expires_in*1000,user:d.user};keep(session);paint()}
 function paint(){
 const u=session&&session.user;
-$("who").textContent=u?((u.user_metadata&&u.user_metadata.full_name)||u.email.split("@")[0]):"";$("who").hidden=!u;
+$("who").textContent=u?"Mon compte · "+((u.user_metadata&&u.user_metadata.full_name)||u.email.split("@")[0]):"";$("who").hidden=!u;
 $("auth").textContent=u?"Se déconnecter":"Connexion";checkAdmin()}
 function say(t,cls){const m=$("msg");m.textContent=t;m.className="msg "+(cls||"")}
 function setMode(m){
@@ -487,7 +555,7 @@ sec("Sécurité","Les connexions sont chiffrées et les mots de passe sont prot�
 annulation:["Annulation et remboursement",
 sec("Annulation par le voyageur","Dans Mon compte, section Mes séjours, touchez Annuler. Le remboursement dépend de la date d’annulation par rapport à l’arrivée :")+
 `<ul><li>jusqu’à 48 heures avant l’arrivée : remboursement de 100 %</li><li>entre 48 heures et le jour de l’arrivée : remboursement de 50 %</li><li>après l’arrivée ou en cas de non-présentation : aucun remboursement</li></ul>`+
-sec("Séjours facturés au mois","Remboursement de 100 % jusqu’à 7 jours avant l’arrivée, de 50 % entre 7 jours et 48 heures avant l’arrivée, puis aucun remboursement.")+
+sec("Séjours facturés au mois","Le prix est reversé à l’hôte mois par mois : le premier mois 24 heures après l’arrivée, puis chaque mois. Avant l’arrivée, le remboursement est de 100 % jusqu’à 7 jours avant, puis de 50 % jusqu’à 48 heures avant. Après l’arrivée, les mois non encore reversés à l’hôte sont remboursés ; le mois en cours n’est pas remboursé.")+
 sec("Remboursement","Il est effectué par le même moyen de paiement, dans les meilleurs délais après l’annulation.")+
 sec("Annulation par l’hôte","Si l’hôte annule, le voyageur est remboursé à 100 %. Des annulations répétées peuvent entraîner la suspension de l’hôte.")+
 sec("Paiement de l’hôte",`L’hôte est payé 24 heures après l’arrivée du voyageur, après déduction de la commission de ${C} %.`)+
@@ -580,7 +648,7 @@ const [ls,ps,bs,pb]=await Promise.all([
 rest("/rest/v1/listings?status=eq.en_attente&select=id,title,description,city,country,price_fcfa,price_unit,max_guests,video_url,host_id,listing_photos(url,position)&order=created_at.asc"),
 rest("/rest/v1/profiles?select=id,full_name,role,host_verified,phone&order=created_at.desc"),
 rest("/rest/v1/bookings?select=id,check_in,check_out,total_fcfa,status,guest_id,listings(title,city)&order=created_at.desc&limit=50"),
-rest("/rest/v1/bookings?status=eq.confirmee&select=id,check_in,total_fcfa,listings(title,host_id),payouts(id)&order=check_in.asc")]);
+rest("/rest/v1/bookings?status=eq.confirmee&select=id,check_in,check_out,total_fcfa,listings(title,host_id,price_unit),payouts(installment)&order=check_in.asc")]);
 const nm=id=>{const p=ps.find(x=>x.id===id);return p&&p.full_name?p.full_name:"Hôte sans nom"};
 $("apend").innerHTML=ls.length?ls.map(x=>{
 const ph=(x.listing_photos||[]).sort((a,b)=>a.position-b.position)[0];
@@ -592,19 +660,25 @@ $("abook").innerHTML=bs.length?bs.map(b=>{const l=b.listings||{};return `<div cl
 }catch(e){asay("Chargement impossible : "+(e.message||"accès refusé"),"err")}}
 function payRender(pb,ps){
 const today=new Date();today.setHours(0,0,0,0);
-const rows=pb.filter(b=>!(Array.isArray(b.payouts)?b.payouts.length:b.payouts));
+const money=v=>v.toLocaleString("fr-FR");
 let sum=0;
-const h=rows.map(b=>{
+const h=pb.map(b=>{
 const l=b.listings||{},p=ps.find(x=>x.id===l.host_id)||{};
-const com=Math.round(b.total_fcfa*COMMISSION/100),amt=b.total_fcfa-com;
-const due=new Date(b.check_in+"T00:00:00");due.setDate(due.getDate()+1);
+const days=Math.round((new Date(b.check_out)-new Date(b.check_in))/864e5);
+const n=l.price_unit==="mois"?Math.max(1,Math.round(days/30.44)):1;
+const done=(b.payouts||[]).length;
+if(done>=n)return "";
+const k=done+1,base=Math.floor(b.total_fcfa/n);
+const gross=k===n?b.total_fcfa-base*(n-1):base;
+const com=Math.round(gross*COMMISSION/100),amt=gross-com;
+const due=new Date(b.check_in+"T00:00:00");due.setMonth(due.getMonth()+k-1);due.setDate(due.getDate()+1);
 const ok=due<=today;if(ok)sum+=amt;
-return `<div class="pend"><b>${esc(l.title||"Logement")}</b><br><span style="color:var(--muted)">Hôte : ${esc(p.full_name||"sans nom")} · ${p.phone?esc(p.phone):"téléphone non renseigné (à demander à l’hôte dans Mon compte)"}</span><br>À reverser : <b>${amt.toLocaleString("fr-FR")} FCFA</b> (total ${b.total_fcfa.toLocaleString("fr-FR")}, commission ${com.toLocaleString("fr-FR")})<br><span style="color:var(--muted)">${ok?"À reverser maintenant":"À reverser à partir du "+due.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})}</span>${ok?`<div class="row"><button class="btn" data-a="paid" data-id="${b.id}" data-host="${esc(l.host_id)}" data-amt="${amt}" data-com="${com}">Marqué comme reversé</button></div>`:""}</div>`}).join("");
-$("apay").innerHTML=(sum?`<p class="msg">Total à reverser maintenant : ${sum.toLocaleString("fr-FR")} FCFA</p>`:"")+(h||`<p class="msg">Aucun reversement en attente.</p>`)}
+return `<div class="pend"><b>${esc(l.title||"Logement")}</b>${n>1?" · mensualité "+k+" sur "+n:""}<br><span style="color:var(--muted)">Hôte : ${esc(p.full_name||"sans nom")} · ${p.phone?esc(p.phone):"téléphone non renseigné (à demander à l’hôte dans Mon compte)"}</span><br>À reverser : <b>${money(amt)} FCFA</b> (${n>1?"part":"total"} ${money(gross)}, commission ${money(com)})<br><span style="color:var(--muted)">${ok?"À reverser maintenant":"À reverser à partir du "+due.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})}</span>${ok?`<div class="row"><button class="btn" data-a="paid" data-id="${b.id}" data-host="${esc(l.host_id)}" data-k="${k}" data-amt="${amt}" data-com="${com}">Marqué comme reversé</button></div>`:""}</div>`}).join("");
+$("apay").innerHTML=(sum?`<p class="msg">Total à reverser maintenant : ${money(sum)} FCFA</p>`:"")+(h||`<p class="msg">Aucun reversement en attente.</p>`)}
 async function markPaid(b){
 const ref=prompt("Référence du transfert (facultatif) :","");
 if(ref===null)return;
-await rest("/rest/v1/payouts",{method:"POST",headers:{...JSONH,Prefer:"return=minimal"},body:JSON.stringify({booking_id:b.dataset.id,host_id:b.dataset.host,amount_fcfa:+b.dataset.amt,commission_fcfa:+b.dataset.com,reference:ref.trim()||null})})}
+await rest("/rest/v1/payouts",{method:"POST",headers:{...JSONH,Prefer:"return=minimal"},body:JSON.stringify({booking_id:b.dataset.id,installment:+b.dataset.k,host_id:b.dataset.host,amount_fcfa:+b.dataset.amt,commission_fcfa:+b.dataset.com,reference:ref.trim()||null})})}
 $("adm").onclick=async()=>{asay("");$("ad").showModal();await adminLoad()};
 $("acl").onclick=()=>$("ad").close();
 $("ad").onclick=async e=>{
@@ -616,8 +690,45 @@ else if(a==="ok"||a==="no")await rest("/rest/v1/listings?id=eq."+id,{method:"PAT
 else if(a==="ver")await rest("/rest/v1/profiles?id=eq."+id,{method:"PATCH",headers:{...JSONH,Prefer:"return=minimal"},body:JSON.stringify({host_verified:b.dataset.v!=="true"})});
 asay("");await adminLoad();load()
 }catch(err){asay("Action impossible : "+(err.message||"accès refusé"),"err")}};
+/* ---- Navigation, catégories et design ---- */
+const svg=p=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const IC={
+home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
+hotel:'<path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16"/><path d="M15 9h4a1 1 0 0 1 1 1v11M2 21h20M8 8h3M8 12h3M8 16h3"/>',
+appartement:'<rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M10 21v-4h4v4"/>',
+villa:'<path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10M10 20v-6h4v6"/>',
+auberge:'<path d="M3 19V6M3 15h18v4M21 15v-3a3 3 0 0 0-3-3h-7v6"/><circle cx="7" cy="11.5" r="1.6"/>',
+autre:'<rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/>'};
+const ROUTES={
+"":{t:"Tous",l:"Accueil",i:"home",title:"Logements disponibles"},
+hotels:{t:"Hôtel",l:"Hôtels",i:"hotel",title:"Hôtels",d:"Hôtels et résidences hôtelières, réservables à la nuit."},
+appartements:{t:"Appartement",l:"Appartements",i:"appartement",title:"Appartements",d:"Appartements meublés ou non, à la nuit ou au mois."},
+villas:{t:"Villa",l:"Villas",i:"villa",title:"Villas",d:"Villas et maisons entières pour les séjours en famille ou en groupe."},
+auberges:{t:"Auberge",l:"Auberges",i:"auberge",title:"Auberges",d:"Auberges et maisons d’hôtes à petit prix."},
+autres:{t:"Autre",l:"Autres",i:"autre",title:"Autres logements",d:"Chambres, studios et autres types de logement."}};
+$("cats").innerHTML=Object.keys(ROUTES).map(k=>`<a href="#${k}" data-k="${k}">${svg(IC[ROUTES[k].i])}<span>${ROUTES[k].l}</span></a>`).join("");
+function paintTiles(){
+$("tiles").innerHTML=Object.keys(ROUTES).filter(k=>k).map(k=>{
+const n=L.filter(x=>x.t===ROUTES[k].t).length;
+return `<a class="tile" href="#${k}">${svg(IC[ROUTES[k].i])}<b>${ROUTES[k].l}</b><span>${n} logement${n>1?"s":""}</span></a>`}).join("")}
+const render0=render;
+render=function(){render0();paintTiles();$("cc").textContent=shown.length+(shown.length>1?" annonces":" annonce")};
+function route(){
+const k=location.hash.replace("#",""),r=ROUTES[k]||ROUTES[""],cat=!!(k&&ROUTES[k]);
+type=r.t;chips();
+$("hero").hidden=cat;$("tiles").hidden=cat;$("cathead").hidden=!cat;
+if(cat){$("ct").textContent=r.title;$("cd").textContent=r.d}
+$("lt").textContent=cat?"Annonces":r.title;
+document.querySelectorAll("#cats a").forEach(a=>a.toggleAttribute("aria-current",a.dataset.k===(cat?k:"")));
+document.querySelectorAll("#cats a[aria-current]").forEach(a=>a.setAttribute("aria-current","page"));
+document.title=(cat?r.title+" | ":"")+"Akpé Séjours";
+render();window.scrollTo(0,0)}
+window.addEventListener("hashchange",route);
+$("beHost2").onclick=()=>$("beHost").click();
+$("acct").addEventListener("click",e=>{if(e.target.closest("button"))$("acct").open=false});
+document.addEventListener("click",e=>{if(!e.target.closest("#acct"))$("acct").open=false});
 boot().then(backFromPayment);
-fillDest();chips();render();load();
+fillDest();chips();route();load();
 </script>
 </body>
 </html>
