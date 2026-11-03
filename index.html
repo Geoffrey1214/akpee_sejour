@@ -160,6 +160,13 @@ dialog{border-radius:12px}
 .bcard .msg.ok{color:var(--leaf)}
 .cats a:focus-visible{outline:2px solid var(--brand);outline-offset:-3px;border-radius:4px}
 @media(max-width:860px){.dgrid{grid-template-columns:1fr}.bcard{position:static}}
+.filters{display:flex;flex-direction:column;gap:10px;margin:0 0 18px}
+.frow{display:flex;gap:8px;align-items:center;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.frow::-webkit-scrollbar{display:none}
+.frow .lab{font-size:13px;color:var(--muted);white-space:nowrap;margin-right:2px;min-width:max-content}
+.chip{border-radius:8px;font:500 13.5px Inter,sans-serif;padding:7px 13px;white-space:nowrap}
+.chip[disabled]{opacity:.4;cursor:default}
+.fhint{margin:0;font-size:13px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -233,6 +240,7 @@ dialog{border-radius:12px}
 <h2 id="lt">Logements disponibles</h2><span class="count" id="cc"></span>
 <div class="chips" id="chips"></div>
 </div>
+<div class="filters" id="filters"></div>
 <div class="grid" id="grid"></div>
 </section>
 
@@ -369,8 +377,8 @@ function money(v){return cur==="FCFA"?v.toLocaleString("fr-FR")+" FCFA":Math.rou
 function chips(){$("chips").innerHTML="";types.forEach(t=>{const b=document.createElement("button");b.type="button";b.className="chip";b.textContent=t;b.setAttribute("aria-pressed",t===type);b.onclick=()=>{type=t;chips();render()};$("chips").append(b)})}
 function render(){
 const d=$("dest").value;
-const rows=L.filter(x=>(!d||x.c===d)&&(type==="Tous"||x.t===type));
-shown=rows;$("grid").innerHTML=rows.length?rows.map((x,i)=>`<article class="card" tabindex="0" role="button" data-i="${i}"><div class="photo" style="background:${bg(x)}"><span>${esc(x.t)}</span></div><div class="body"><h3>${esc(x.n)}</h3><div class="city">${esc(x.c)}${x.r?" · ★ "+x.r:""}</div><div class="price"><b>${money(x.p)}</b><span>par ${esc(x.u||"nuit")}</span></div></div></article>`).join(""):`<div class="empty">Aucun logement pour cette recherche. Essayez une autre ville ou un autre type.</div>`}
+const rows=L.filter(x=>(!d||x.c===d)&&(type==="Tous"||x.t===type)&&(!fUnit||(x.u||"nuit")===fUnit)&&priceOk(x));
+shown=rows;$("grid").innerHTML=rows.length?rows.map((x,i)=>`<article class="card" tabindex="0" role="button" data-i="${i}"><div class="photo" style="background:${bg(x)}"><span>${esc(x.t)}</span></div><div class="body"><h3>${esc(x.n)}</h3><div class="city">${esc(x.c)}${x.r?" · ★ "+x.r:""}</div><div class="price"><b>${money(x.p)}</b><span>par ${esc(x.u||"nuit")}</span></div></div></article>`).join(""):`<div class="empty">Aucun logement pour cette recherche. Essayez une autre ville, un autre budget ou un autre type.</div>`}
 $("form").onsubmit=e=>{e.preventDefault();render();$("logements").scrollIntoView({behavior:"smooth"})};
 $("dest").onchange=render;
 $("m").onclick=()=>{guests=Math.max(1,guests-1);$("g").textContent=guests};
@@ -744,13 +752,34 @@ function paintTiles(){
 $("tiles").innerHTML=Object.keys(ROUTES).filter(k=>k).map(k=>{
 const n=L.filter(x=>x.t===ROUTES[k].t).length;
 return `<a class="tile" href="#${k}">${svg(IC[ROUTES[k].i])}<b>${ROUTES[k].l}</b><span>${n} logement${n>1?"s":""}</span></a>`}).join("")}
+/* ---- Filtres : durée et budget ---- */
+let fUnit="",fRng=0;
+const UL={"":"Toutes durées",nuit:"Par nuit",jour:"Par jour",mois:"Par mois"};
+const RG={nuit:[0,10000,25000,50000,100000,1e12],jour:[0,10000,25000,50000,100000,1e12],mois:[0,25000,50000,100000,200000,1e12]};
+const fm=v=>v.toLocaleString("fr-FR");
+const rLabel=(a,b)=>a===0?"Moins de "+fm(b):b>=1e12?"Plus de "+fm(a):fm(a)+" – "+fm(b);
+function priceOk(x){if(!fRng)return true;const g=RG[fUnit];return x.p>=g[fRng-1]&&x.p<g[fRng]}
+function paintFilters(){
+const d=$("dest").value,un=x=>x.u||"nuit";
+const B=L.filter(x=>(!d||x.c===d)&&(type==="Tous"||x.t===type));
+let h='<div class="frow"><span class="lab">Durée</span>'+Object.keys(UL).map(u=>{const n=B.filter(x=>!u||un(x)===u).length;return `<button type="button" class="chip" data-u="${u}" aria-pressed="${fUnit===u}"${n?"":" disabled"}>${UL[u]} · ${n}</button>`}).join("")+"</div>";
+if(fUnit){
+const g=RG[fUnit],U=B.filter(x=>un(x)===fUnit);
+h+=`<div class="frow"><span class="lab">Budget (FCFA)</span><button type="button" class="chip" data-r="0" aria-pressed="${fRng===0}">Tous · ${U.length}</button>`+g.slice(0,-1).map((a,i)=>{const b=g[i+1],n=U.filter(x=>x.p>=a&&x.p<b).length;return `<button type="button" class="chip" data-r="${i+1}" aria-pressed="${fRng===i+1}"${n?"":" disabled"}>${rLabel(a,b)} · ${n}</button>`}).join("")+"</div>"
+}else h+='<p class="fhint">Choisissez nuit, jour ou mois pour filtrer par budget.</p>';
+$("filters").innerHTML=h}
+$("filters").onclick=e=>{
+const b=e.target.closest("button");if(!b||b.disabled)return;
+if(b.dataset.u!==undefined){fUnit=b.dataset.u;fRng=0}
+else if(b.dataset.r!==undefined)fRng=+b.dataset.r;
+render()};
 let routing=false;
 const render0=render;
-render=function(){render0();paintTiles();$("cc").textContent=shown.length+(shown.length>1?" annonces":" annonce");if(!routing&&/^#l-/.test(location.hash)&&!(pick&&location.hash==="#l-"+pick.id))route()};
+render=function(){render0();paintTiles();paintFilters();$("cc").textContent=shown.length+(shown.length>1?" annonces":" annonce");if(!routing&&/^#l-/.test(location.hash)&&!(pick&&location.hash==="#l-"+pick.id))route()};
 function route(){
 if(routing)return;routing=true;
 const k0=location.hash.replace("#",""),x=k0.startsWith("l-")?L.find(y=>y.id===k0.slice(2)):null,det=!!x,k=det?"":k0,r=ROUTES[k]||ROUTES[""],cat=!!(k&&ROUTES[k]);
-type=r.t;chips();
+type=r.t;fUnit="";fRng=0;chips();
 if(det)fillDetail(x);
 ["form","logements","why","hote"].forEach(i=>$(i).hidden=det);
 $("detail").hidden=!det;
